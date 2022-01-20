@@ -17,6 +17,7 @@ const (
 )
 
 type Char C.chtype
+type WChar C.wchar_t
 
 // Text attributes
 const (

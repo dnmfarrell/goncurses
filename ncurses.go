@@ -5,12 +5,17 @@
 
 package goncurses
 
-// #cgo !darwin,!openbsd,!windows pkg-config: ncurses
+// #cgo !darwin,!openbsd,!windows pkg-config: ncursesw
 // #cgo windows CFLAGS: -DNCURSES_MOUSE_VERSION
 // #cgo windows LDFLAGS: -lpdcurses
-// #cgo darwin openbsd LDFLAGS: -lncurses
+// #cgo darwin openbsd LDFLAGS: -lncursesw
 // #include <curses.h>
 // #include "goncurses.h"
+// #include <locale.h>
+// void
+// locale_init() {
+//   setlocale(LC_ALL, "");
+// }
 import "C"
 
 import (
@@ -182,6 +187,7 @@ func InitPair(pair, fg, bg int16) error {
 // Initialize the ncurses library. You must run this function prior to any
 // other goncurses function in order for the library to work
 func Init() (stdscr *Window, err error) {
+	C.locale_init()
 	stdscr = &Window{C.initscr()}
 	if unsafe.Pointer(stdscr.win) == nil {
 		err = errors.New("An error occurred initializing ncurses")
@@ -280,6 +286,62 @@ func StdScr() *Window {
 // UnGetChar places the character back into the input queue
 func UnGetChar(ch Char) {
 	C.ncurses_ungetch(C.int(ch))
+}
+
+// UnGetWChar places the wide character back into the input queue
+func UnGetWChar(wc WChar) error {
+	ok := C.unget_wch(C.wchar_t(wc))
+	if ok == C.ERR {
+		return errors.New("unget_wch returned an error")
+	}
+	return nil
+}
+
+// AddChar prints a character to the screen. The character can be
+// OR'd together with attributes and colors. Returns an error on failure.
+func AddChar(ach Char) error {
+	ok := C.addch(C.chtype(ach))
+	if ok == C.ERR {
+		return errors.New("addch returned an error")
+	}
+	return nil
+}
+
+// AddWChar prints a wide character to the screen. Returns an error on failure.
+func AddWChar(wch WChar) error {
+	var cc C.cchar_t
+  C.setcchar(&cc, (*C.wchar_t)(&wch), 0, 0, C.NULL);
+	ok := C.add_wch(&cc)
+	if ok == C.ERR {
+		return errors.New("add_wch returned an error")
+	}
+	return nil
+}
+
+// GetChar retrieves a wide character from the standard input stream and
+// returns it.
+// In the event of an error or if the input timeout has expired (i.e. if
+// Timeout() has been set to zero or a positive value and no characters have
+// been received) the value returned will be zero (0)
+func GetWChar() WChar {
+	var wt C.wint_t
+	ok := C.get_wch(&wt)
+	if ok == C.ERR {
+		return WChar(0)
+	}
+	return WChar(wt)
+}
+
+// GetChar retrieves a character from standard input stream and returns it.
+// In the event of an error or if the input timeout has expired (i.e. if
+// Timeout() has been set to zero or a positive value and no characters have
+// been received) the value returned will be zero (0)
+func GetChar() Char {
+	ch := C.getch()
+	if ch == C.ERR {
+		ch = 0
+	}
+	return Char(ch)
 }
 
 // Update the screen, refreshing all windows

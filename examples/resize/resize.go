@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	gc "github.com/rthornton128/goncurses"
+	gc "github.com/dnmfarrell/goncurses"
 )
 
 var stdscr *gc.Window

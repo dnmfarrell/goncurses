@@ -1,3 +1,3 @@
-module github.com/rthornton128/goncurses
+module github.com/dnmfarrell/goncurses
 
-go 1.15
+go 1.17
