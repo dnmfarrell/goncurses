@@ -68,7 +68,7 @@ func TestAddWChar(t *testing.T) {
 	var in goncurses.WChar = 'ń'
 	err = goncurses.AddWChar(in)
 	if err != nil {
-		t.Errorf("UngetWChar returns an error: %s", err)
+		t.Errorf("AddWChar returns an error: %s", err)
 	}
 }
 

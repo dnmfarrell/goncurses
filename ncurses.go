@@ -19,6 +19,7 @@ package goncurses
 import "C"
 
 import (
+	gopointer "github.com/mattn/go-pointer"
 	"errors"
 	"fmt"
 	"unsafe"
@@ -318,13 +319,16 @@ func AddWChar(wch WChar) error {
 	return nil
 }
 
-// GetChar retrieves a wide character from the standard input stream and
+// GetWChar retrieves a wide character from the standard input stream and
 // returns it.
 // In the event of an error or if the input timeout has expired (i.e. if
 // Timeout() has been set to zero or a positive value and no characters have
 // been received) the value returned will be zero (0)
 func GetWChar() WChar {
 	var wt C.wint_t
+	p := gopointer.Save(&wt)
+	defer gopointer.Unref(p)
+
 	ok := C.get_wch(&wt)
 	if ok == C.ERR {
 		return WChar(0)
